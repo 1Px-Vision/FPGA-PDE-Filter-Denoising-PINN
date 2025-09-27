@@ -72,8 +72,8 @@ Row_Loop:
             ap_fixed<16,6> u_c  = u[r][c];
             ap_fixed<16,6> u_u  = u[r_up   ][c];
             ap_fixed<16,6> u_d  = u[r_down ][c];
-            ap_fixed<16,6> u_l  = u[r      ][c_left ];
-            ap_fixed<16,6> u_r  = u[r      ][c_right];
+            ap_fixed<16,6> u_l  = u[r][c_left ];
+            ap_fixed<16,6> u_r  = u[r][c_right];
 
             // 3x3 Laplacian (0,1,0; 1,-4,1; 0,1,0)
             ap_fixed<18,8> lap = (ap_fixed<18,8>)u_u
