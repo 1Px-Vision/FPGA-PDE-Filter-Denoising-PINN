@@ -6,6 +6,7 @@ $$
  residual=\alpha \cdot \nabla^{2}u-\hat{u}
 $$
 
+![](https://github.com/1Px-Vision/FPGA-PDE-Filter-Denoising-PINN/blob/main/PDE_denoise_1.jpg)
 ## Why it helps
 
 * **Robust at low SNR:** PDE prior stabilizes training and suppresses noise structures the CNN might hallucinate.
