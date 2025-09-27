@@ -105,6 +105,7 @@ Row_Loop:
 * ``` #pragma HLS PIPELINE II=1 (inside the pixel loop) ```
 	* Instructs HLS to schedule the inner loop with initiation interval = 1, i.e., accept one pixel per clock once the pipeline is full. This is the key to line-rate throughput.
 
+### Case 1
 
 ```
 // diffusion_residual_axis.h
@@ -207,5 +208,80 @@ Row:
         }
     }
 }
+
+```
+### Case 2
+
+* Partitioned the second dimension (columns) cyclic factor=4. Unrolling the inner loop by 4 lets HLS issue 4 column reads/writes in parallel for u, pred, and out
+
+* ```PIPELINE II=1 ``` on the tiled loop (c += 4) means every clock you process 4 pixels. Throughput ≈ 4 px/clk (vs 1 px/clk previously), bounded by memory and timing.
+
+```
+// diffusion_residual_mm_unroll4.h
+#include <ap_int.h>
+#include <ap_fixed.h>
+
+template<int H, int W>
+void diffusion_residual_mm(
+    const ap_fixed<16,6> u   [H][W],   // input image u(x,y)
+    const ap_fixed<16,6> pred[H][W],   // model(u)(x,y) from DPU
+          ap_fixed<16,6> out [H][W],   // residual output
+    const ap_fixed<16,6> alpha         // diffusion coefficient
+) {
+#pragma HLS INLINE off
+    // 4-way cyclic partition across the column dimension enables 4 parallel reads/writes
+#pragma HLS ARRAY_PARTITION variable=u    dim=2 cyclic factor=4
+#pragma HLS ARRAY_PARTITION variable=pred dim=2 cyclic factor=4
+#pragma HLS ARRAY_PARTITION variable=out  dim=2 cyclic factor=4
+
+Row_Loop:
+    for (int r = 0; r < H; ++r) {
+    Col4_Loop:
+        for (int c = 0; c < W; c += 4) {
+#pragma HLS PIPELINE II=1
+
+            // Precompute row neighbors (same for all 4 lanes)
+            const int r_up   = (r == 0   ) ? 0   : r - 1;
+            const int r_down = (r == H-1 ) ? H-1 : r + 1;
+
+        Lane_Loop:
+            for (int k = 0; k < 4; ++k) {
+#pragma HLS UNROLL factor=4
+
+                const int cc = c + k;
+                if (cc >= W) continue;  // tail-guard when W % 4 != 0
+
+                // Column neighbors per-lane (replicate padding)
+                const int c_left  = (cc == 0   ) ? 0   : cc - 1;
+                const int c_right = (cc == W-1 ) ? W-1 : cc + 1;
+
+                ap_fixed<16,6> u_c = u[r     ][cc];
+                ap_fixed<16,6> u_u = u[r_up  ][cc];
+                ap_fixed<16,6> u_d = u[r_down][cc];
+                ap_fixed<16,6> u_l = u[r     ][c_left ];
+                ap_fixed<16,6> u_r = u[r     ][c_right];
+
+                // Laplacian (0,1,0; 1,-4,1; 0,1,0)
+                ap_fixed<18,8> lap =
+                      (ap_fixed<18,8>)u_u
+                    + (ap_fixed<18,8>)u_d
+                    + (ap_fixed<18,8>)u_l
+                    + (ap_fixed<18,8>)u_r
+                    - (ap_fixed<18,8>)4.0 * (ap_fixed<18,8>)u_c;
+
+                // Multiply mapped to DSP (hint)
+#pragma HLS RESOURCE variable=lap core=AddSub_DSP    // sums can also map to DSPs if available
+                ap_fixed<18,8> diff = (ap_fixed<18,8>)alpha * lap;
+#pragma HLS RESOURCE variable=diff core=Mul_DSP
+
+                out[r][cc] = (ap_fixed<16,6>)(
+                    diff - (ap_fixed<18,8>)pred[r][cc]
+                );
+            } // lane
+        } // c
+    } // r
+}
+
+
 
 ```
