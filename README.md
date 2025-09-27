@@ -1,3 +1,5 @@
+![](https://github.com/1Px-Vision/FPGA-PDE-Filter-Denoising-PINN/blob/main/PDE_denoise_1.jpg)
+
 # Denoise PDE + Deep Learning (Physics-Informed Denoising)
 
 This approach fuses classical partial differential equations (PDEs) for image smoothing with a CNN/UNet denoiser. The network predicts a clean image while a physics-informed loss penalizes violations of a diffusion model.
@@ -6,7 +8,6 @@ $$
  residual=\alpha \cdot \nabla^{2}u-\hat{u}
 $$
 
-![](https://github.com/1Px-Vision/FPGA-PDE-Filter-Denoising-PINN/blob/main/PDE_denoise_1.jpg)
 ## Why it helps
 
 * **Robust at low SNR:** PDE prior stabilizes training and suppresses noise structures the CNN might hallucinate.
