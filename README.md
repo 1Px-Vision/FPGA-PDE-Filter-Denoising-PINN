@@ -12,11 +12,18 @@ $$
 *\ u
 $$ 
 
-* **Diffusion residual** ``` residual = α·(∇²u) − pred ```, where pred is typically the DPU model output.
+CNN runs on the DPU, and the PDE residual runs in a custom HLS kernel (HDL) that reads/writes DDR
+
+* **TF code (no classes)** — build/export the DPU model.
+	* Build/link hints (Vitis/Vitis-AI)
+
+* **HLS kernel (MM)** for the PDE residual (AXI4-M + AXI-Lite)
+	* **Diffusion residual** ``` residual = α·(∇²u) − pred ```, where pred is typically the DPU model output.
 
 * **Memory-mapped (AXI4-M) 2D arrays** — simplest to integrate if you’re using PL kernels on PS DDR buffers.
 
 * **AXI4-Stream + line buffer** — fully pipelined streaming kernel to chain after your DPU or a DMA.
+	* Minimal XRT host to run DPU → PDE
 
 ## Memory-mapped version
 
