@@ -6,6 +6,16 @@ $$
  residual=\alpha \cdot \nabla^{2}u-\hat{u}
 $$
 
+## Why it helps
+
+* **Robust at low SNR:** PDE prior stabilizes training and suppresses noise structures the CNN might hallucinate.
+
+* **Better generalization:** Encodes domain physics, reducing overfitting and label dependence.
+
+* **Edge-aware:** With proper diffusion (e.g., anisotropic/Perona–Malik), preserves boundaries while removing noise.
+
+* **Hardware-friendly:** Split compute—DPU runs the CNN; an HLS kernel streams the 3×3 Laplacian/residual at II=1, enabling real-time, low-latency denoising on FPGA.
+
 # HLS-Optimized Parallel PDE Filter (FPGA)
 
 A lightweight, line-rate PDE residual filter for images, designed for Vitis HLS and easy integration with DPU pipelines. It implements the 3×3 Laplacian stencil.
