@@ -93,6 +93,19 @@ Row_Loop:
 
 ## AXI4-Stream version
 
+* ```#pragma HLS INTERFACE axis port=u_in/pred_in/out_stream ```
+	* Declares AXI4-Stream on the three pixel streams so the kernel can run at line-rate with back-pressure. The tool inserts FIFOs and TVALID/TREADY logic.
+
+* ``` #pragma HLS INTERFACE s_axilite port=H/W_in/alpha/return bundle=control ```
+	* Creates a lightweight AXI4-Lite control port for scalar args and the return (start/idle regs). Lets PS set image size and α at run time.
+
+* ``` #pragma HLS BIND_STORAGE variable=linebuf* type=ram_1p impl=bram ```
+	* Forces each line buffer into single-port BRAM. This is a resource binding directive: use BRAMs, not LUTRAM/URAM, and fix the port type.
+
+* ``` #pragma HLS PIPELINE II=1 (inside the pixel loop) ```
+	* Instructs HLS to schedule the inner loop with initiation interval = 1, i.e., accept one pixel per clock once the pipeline is full. This is the key to line-rate throughput.
+
+
 ```
 // diffusion_residual_axis.h
 #include <ap_int.h>
