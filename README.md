@@ -20,6 +20,26 @@ $$
 
 ## Memory-mapped version
 
+```#pragma HLS INLINE off ```
+
+* Prevents Vivado/Vitis HLS from inlining diffusion_residual_mm into its caller.
+
+* Function as a distinct RTL block , avoids the caller’s pragmas interfering with this kernel’s pipeline.
+
+``` #pragma HLS ARRAY_PARTITION variable=... dim=2 cyclic factor=4 ```
+
+* Splits the 2-D arrays across dimension 2 (the column index) into 4 interleaved banks (cyclic partitioning). Element [r][c] goes to bank c % 4.
+
+* The inner loop accesses up to five columns per pixel (c_left, c, c_right on the same row and c on up/down rows) plus one write to out[r][c]. With a single BRAM, those would serialize and break II=1.
+
+* Banking lets the tool schedule multiple parallel reads/writes in the same cycle by placing adjacent columns in different BRAM banks, eliminating port conflicts.
+
+``` #pragma HLS PIPELINE II=1 ```
+
+* Inner column loop so a new pixel is processed every clock
+
+* Simple arithmetic (adds/mults) and lowering clock
+
 ```
 // diffusion_residual_mm.h
 #include <ap_int.h>
