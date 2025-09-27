@@ -259,14 +259,14 @@ Row_Loop:
                 if (cc >= W) continue;  // tail-guard when W % 4 != 0
 
                 // Column neighbors per-lane (replicate padding)
-                const int c_left  = (cc == 0   ) ? 0   : cc - 1;
-                const int c_right = (cc == W-1 ) ? W-1 : cc + 1;
+                const int c_left  = (cc == 0) ? 0   : cc - 1;
+                const int c_right = (cc == W-1) ? W-1 : cc + 1;
 
-                ap_fixed<16,6> u_c = u[r     ][cc];
+                ap_fixed<16,6> u_c = u[r][cc];
                 ap_fixed<16,6> u_u = u[r_up  ][cc];
                 ap_fixed<16,6> u_d = u[r_down][cc];
-                ap_fixed<16,6> u_l = u[r     ][c_left ];
-                ap_fixed<16,6> u_r = u[r     ][c_right];
+                ap_fixed<16,6> u_l = u[r][c_left ];
+                ap_fixed<16,6> u_r = u[r][c_right];
 
                 // Laplacian (0,1,0; 1,-4,1; 0,1,0)
                 ap_fixed<18,8> lap =
