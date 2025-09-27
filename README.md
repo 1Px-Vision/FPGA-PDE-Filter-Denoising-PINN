@@ -1,3 +1,9 @@
+# Denoise PDE + Deep Learning (Physics-Informed Denoising)
+
+This approach fuses classical partial differential equations (PDEs) for image smoothing with a CNN/UNet denoiser. The network predicts a clean image while a physics-informed loss penalizes violations of a diffusion model.
+
+
+
 # HLS-Optimized Parallel PDE Filter (FPGA)
 
 A lightweight, line-rate PDE residual filter for images, designed for Vitis HLS and easy integration with DPU pipelines. It implements the 3×3 Laplacian stencil.
